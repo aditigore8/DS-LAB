@@ -1,0 +1,136 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Song {
+    char name[100];
+    struct Song* next;
+    struct Song* prev;
+} Song;
+
+Song* head = NULL;
+Song* current = NULL;
+
+Song* createSong(char name[]) {
+    Song* newSong = (Song*)malloc(sizeof(Song));
+    strcpy(newSong->name, name);
+    newSong->next = newSong->prev = newSong;
+    return newSong;
+}
+void addSong(char name[]) {
+    Song* newSong = createSong(name);
+
+    if (head == NULL) {
+        head = newSong;
+        current = newSong;
+    } else {
+        Song* tail = head->prev;
+        tail->next = newSong;
+        newSong->prev = tail;
+        newSong->next = head;
+        head->prev = newSong;
+    }
+
+    printf("Added song: %s\n", name);
+}
+void removeCurrentSong() {
+    if (head == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+
+    printf("Removing song: %s\n", current->name);
+
+    if (current->next == current) { // Only one song
+        free(current);
+        head = NULL;
+        current = NULL;
+    } else {
+        Song* prevSong = current->prev;
+        Song* nextSong = current->next;
+        prevSong->next = nextSong;
+        nextSong->prev = prevSong;
+
+        if (current == head) {
+            head = nextSong;
+        }
+
+        free(current);
+        current = nextSong;
+    }
+}
+void nextSong() {
+    if (current == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+    current = current->next;
+    printf("Now playing: %s\n", current->name);
+}
+void previousSong() {
+    if (current == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+    current = current->prev;
+    printf("Now playing: %s\n", current->name);
+}
+void displayPlaylist() {
+    if (head == NULL) {
+        printf("Playlist is empty!\n");
+        return;
+    }
+
+    Song* temp = head;
+    printf("Playlist:\n");
+    do {
+        printf("- %s\n", temp->name);
+        temp = temp->next;
+    } while (temp != head);
+}
+
+int main() {
+    int choice;
+    char name[100];
+
+    do {
+        printf("\n==== Music Playlist Manager ====\n");
+        printf("1. Add Song\n");
+        printf("2. Remove Current Song\n");
+        printf("3. Play Next Song\n");
+        printf("4. Play Previous Song\n");
+        printf("5. Display Playlist\n");
+        printf("6. Exit\n");
+        printf("Enter your choice: ");
+        scanf("%d", &choice);
+        getchar(); // To consume newline character after scanf
+
+        switch (choice) {
+            case 1:
+                printf("Enter song name: ");
+                fgets(name, sizeof(name), stdin);
+                name[strcspn(name, "\n")] = 0; // Remove trailing newline
+                addSong(name);
+                break;
+            case 2:
+                removeCurrentSong();
+                break;
+            case 3:
+                nextSong();
+                break;
+            case 4:
+                previousSong();
+                break;
+            case 5:
+                displayPlaylist();
+                break;
+            case 6:
+                printf("Exiting playlist manager.\n");
+                break;
+            default:
+                printf("Invalid choice. Try again.\n");
+        }
+    } while (choice != 6);
+
+    return 0;
+}
